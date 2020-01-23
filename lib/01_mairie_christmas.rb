@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'open-uri'
 require 'nokogiri'
 
@@ -6,49 +8,47 @@ def get_townhall_email(townhall_url)
   tds = page.xpath('//td')
   ar = []
   begin
-    ar = tds.select{|td| td.text =~ /.+@.+\.\w+/}
-  rescue => exception
+    ar = tds.select { |td| td.text =~ /.+@.+\.\w+/ }
+  rescue StandardError => e
     puts "Certains emails n'existent pas. Poursuite de la recherche..."
   end
-  
-  if ar.length > 0
-    return ar[0].text.strip
+
+  if !ar.empty?
+    ar[0].text.strip
   else
-    return ""
+    ''
   end
-  
-  #filtered = tds.text.reject{|entry| entry.include?()}
+
 end
 
 def get_townhalls_urls
-  puts "Getting urls ..."
+  puts 'Getting urls ...'
   links = {}
-  page = Nokogiri::HTML(open("http://annuaire-des-mairies.com/val-d-oise.html"))
+  page = Nokogiri::HTML(open('http://annuaire-des-mairies.com/val-d-oise.html'))
   table = page.xpath('//a[@class="lientxt"]')
-  table.each{|link|
-     #puts "#{link.txt} \t "
-     name = link.text
-     lnk = link.xpath('@href').to_s
-     lnk_formatted = lnk.sub('.', 'http://annuaire-des-mairies.com')
-     links[name.downcase.strip.gsub(' ', '_')] = lnk_formatted
-    }
-    puts "Got the urls ! Still working..."
-    links
+  table.each do |link|
+    # puts "#{link.txt} \t "
+    name = link.text
+    lnk = link.xpath('@href').to_s
+    lnk_formatted = lnk.sub('.', 'http://annuaire-des-mairies.com')
+    links[name.downcase.strip.gsub(' ', '_')] = lnk_formatted
+  end
+  puts 'Got the urls ! Still working...'
+  links
 end
 
 def get_all_emails
-  puts "La recherche a débuté..."
+  puts 'La recherche a débuté...'
   emails = []
-  townhalls_urls = get_townhalls_urls()
-  townhalls_urls.each{|key, value|
+  townhalls_urls = get_townhalls_urls
+  townhalls_urls.each do |key, value|
     mail = get_townhall_email(value)
-    h = Hash.new
+    h = {}
     h[key] = mail
     emails.push(h)
-  }
-  puts "Got the emails! "
-  return emails
+  end
+  puts 'Got the emails! '
+  emails
 end
 p get_all_emails
-#get_townhall_email("http://annuaire-des-mairies.com/95/arnouville-les-gonesse.html")
-#get_townhall_urls
+
